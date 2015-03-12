@@ -1,0 +1,25 @@
+<?php
+/**
+ * Implements hook_schema().
+ */
+function login_watch_schema() {
+  $schema['login_count'] = array(
+    'description' => 'Table for login_count module.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'Field for user uid.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'count' => array(
+        'description' => 'Field for counter value',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uid'),
+  );
+  return $schema;
+} 
