@@ -48,17 +48,42 @@ $items = array();
   return $items;
 }
 /**
- * Create stats table.
+ * Create a table with db values.
  */
 function login_watch_create_table() {
-  $header = array(t('Uid'), t('User'), t('Last login'), t('Login сounter'));
+  $perpage = 15;
   $rows = array();
-  $query = db_select('users', 'u');
-  $query->innerJoin('login_count', 'l', 'l.uid = u.uid');
-  $query->fields('u', array('uid', 'name', 'login'))
+  $header = array(
+    array(
+      'data' => t('uid'),
+      'field' => 'uid',
+      'sort' => 'asc'
+    ),
+    array(
+      'data' => t('User'),
+      'field' => 'name'
+    ),
+    array(
+      'data' => t('Last login'),
+      'field' => 'login' 
+    ),
+    array(
+      'data' => 'Login counter',
+      'field' => 'count'
+    )
+  );
+  // Create a query with sort order and pager.
+  $select = db_select('users', 'u')
+    ->extend('TableSort')
+    ->extend('PagerDefault');
+  $select->innerJoin('login_count', 'l', 'l.uid = u.uid');
+  $select->fields('u', array('uid', 'name', 'login'))
     ->fields('l', array('uid', 'count'))
-    ->execute();
-  while ($value = $query->fetchAssoc()) {
+    ->orderByHeader($header)
+    ->limit($perpage);
+  $result = $select->execute();
+  // Fill the table.
+  while ($value = $result->fetchAssoc()) {
     $rows[] = array(
       $value['uid'],
       $value['name'],
@@ -66,5 +91,8 @@ function login_watch_create_table() {
       $value['count'],
     );
   }
-  return theme('table', array('header' => $header, 'rows' => $rows));
+  // Render the table.
+  $table = theme('table', array('header' => $header, 'rows' => $rows));
+  $table .= theme('pager');
+  return $table;
 }
