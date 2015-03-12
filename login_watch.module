@@ -1,0 +1,70 @@
+<?php
+/**
+ * Implements hook_user_login().
+ */
+function login_watch_user_login(&$edit, $account) {
+  global $user;
+  $uid = $user->uid;
+// Check uid value in database
+  $check_sql_uid = db_select('login_count', 'l')
+  ->fields('l', array('uid'))
+  ->condition('l.uid', $uid)
+  ->execute()
+  ->fetchField();
+// If user's counter is currently exists, increment its by one, else we create new user's counter with 1 value
+  if ($check_sql_uid) {
+    db_update('login_count')
+    ->expression('count', 'count + 1')
+    ->condition('uid', $uid)
+    ->execute();
+  }
+  else{
+    db_insert('login_count')
+    ->fields(array('uid' => $uid, 'count' => 1))
+    ->execute();
+  }
+}
+/**
+ * Implements hook_permission().
+ */
+function login_watch_permission() {
+  return array(
+    'access module page' => array(
+      'title' => t('Give access to view stats page'),
+    ),
+  );
+}
+/**
+ * Implements hook_menu().
+ */
+function login_watch_menu() {
+$items = array();
+  $items['admin/config/people/login_watch'] = array(
+    'title' => 'Login Watch module',
+    'description' => 'Show login information of registered users.',
+    'page callback' => 'login_watch_create_table',
+    'access arguments' => array('access module page'),
+  );
+  return $items;
+}
+/**
+ * Create stats table.
+ */
+function login_watch_create_table() {
+  $header = array(t('Uid'), t('User'), t('Last login'), t('Login сounter'));
+  $rows = array();
+  $query = db_select('users', 'u');
+  $query->innerJoin('login_count', 'l', 'l.uid = u.uid');
+  $query->fields('u', array('uid', 'name', 'login'));
+  $query->fields('l', array('uid', 'count'));
+  $result = $query->execute();
+  while ($value = $result->fetchAssoc()) {
+    $rows[] = array(
+      $value['uid'],
+      $value['name'],
+      format_date($value['login'], 'custom', 'm/d/Y - H:i'),
+      $value['count'],
+    );
+  }
+  return theme('table', array('header' => $header, 'rows' => $rows));
+}

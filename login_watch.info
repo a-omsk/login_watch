@@ -1,0 +1,3 @@
+name = "Login Watch"
+description = "Simple login stats module"
+core = "7.x"
