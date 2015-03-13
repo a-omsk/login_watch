@@ -27,6 +27,5 @@ function login_watch_counter() {
   }
   // Render the table.
   $table_counter = theme('table', array('header' => $header, 'rows' => $rows));
-  $table_counter .= theme('pager');
   return $table_counter;
 }
