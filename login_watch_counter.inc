@@ -17,7 +17,7 @@ function login_watch_counter() {
     ),
   );
   // Count every user login value.
-  $count = db_query("SELECT name, count(*) as counter FROM {login_tracker} INNER JOIN users using(uid) group by uid");
+  $count = db_query("SELECT name, count(*) AS counter FROM {login_tracker} INNER JOIN users USING(uid) GROUP BY uid");
   // Fill the table.
   while ($value = $count->fetchAssoc()) {
     $rows[] = array(
