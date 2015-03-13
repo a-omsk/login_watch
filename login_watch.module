@@ -67,16 +67,11 @@ function login_watch_create_table() {
     )
   );
   // Create a query with sort order and pager.
-  $select = db_select('users', 'u')
-    ->extend('TableSort')
-    ->extend('PagerDefault');
+  $select = db_select('users', 'u')->extend('TableSort')->extend('PagerDefault');
   $select->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
-  $select->fields('u', array('uid', 'name'))
-    ->fields('l', array('uid', 'timestamp'))
-    ->orderByHeader($header)
-    ->limit($perpage);
+  $select->fields('u', array('uid', 'name'))->fields('l', array('uid', 'timestamp'))->orderByHeader($header)->limit($perpage);
   $result = $select->execute();
-  //Fill the table.
+  //Fill the table
   while ($value = $result->fetchAssoc()) {
     $rows[] = array(
       format_date(strtotime($value['timestamp']), 'short', '', $timezone),
