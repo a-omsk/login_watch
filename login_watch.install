@@ -6,11 +6,11 @@ function login_watch_schema() {
   $schema['login_tracker'] = array(
     'description' => 'Table for login_count module.',
     'fields' => array(
-      'id' => array(
-        'description' => 'This is primary key.',
-        'type' => 'int',
+       'id' => array(
+        'description' => 'The primary identifier',
+        'type' => 'serial',
+        'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
       ),
       'uid' => array(
         'description' => 'Field for user uid.',
@@ -20,9 +20,9 @@ function login_watch_schema() {
       ),
       'timestamp' => array(
         'description' => 'Timestamp of every user login.',
-        'type' => 'timestamp',
+        'type' => 'int',
         'not null' => TRUE,
-        'default' => 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+        'default' => 0,
       ),
     ),
     'primary key' => array('id'),
