@@ -4,25 +4,9 @@
  */
 function login_watch_user_login(&$edit, $account) {
   global $user;
-  $uid = $user->uid;
-  // Check uid value in database.
-  $check_sql_uid = db_select('login_count', 'l')
-    ->fields('l', array('uid'))
-    ->condition('l.uid', $uid)
-    ->execute()
-    ->fetchField();
-  // If user's counter is currently exists, increment its by one, else we create new user's counter with 1 value.
-  if ($check_sql_uid) {
-    db_update('login_count')
-      ->expression('count', 'count + 1')
-      ->condition('uid', $uid)
-      ->execute();
-  }
-  else{
-    db_insert('login_count')
-      ->fields(array('uid' => $uid, 'count' => 1))
-      ->execute();
-  }
+  db_insert('login_tracker')
+  ->fields(array('uid' => $user->uid))
+  ->execute();
 }
 /**
  * Implements hook_permission().
@@ -45,50 +29,59 @@ $items = array();
     'page callback' => 'login_watch_create_table',
     'access arguments' => array('access module page'),
   );
+  $items['admin/config/people/login_watch/timestamps'] = array(
+    'title' => 'Login Watch module',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+);
+  $items['admin/config/people/login_watch/counter'] = array(
+    'title' => 'Login Watch module',
+    'access arguments' => array('access module page'),
+    'page callback' => 'login_watch_counter',
+    'file' => 'login_watch_counter.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
   return $items;
 }
 /**
  * Create a table with db values.
  */
 function login_watch_create_table() {
+  $timezone = variable_get('date_default_timezone');
   $perpage = 15;
   $rows = array();
   $header = array(
     array(
+      'data' => t('Login date'),
+      'field' => 'timestamp' ,
+      'sort' => 'desc'
+    ),
+    array(
       'data' => t('uid'),
       'field' => 'uid',
-      'sort' => 'asc'
     ),
     array(
       'data' => t('User'),
       'field' => 'name'
-    ),
-    array(
-      'data' => t('Last login'),
-      'field' => 'login' 
-    ),
-    array(
-      'data' => 'Login counter',
-      'field' => 'count'
     )
   );
   // Create a query with sort order and pager.
   $select = db_select('users', 'u')
     ->extend('TableSort')
     ->extend('PagerDefault');
-  $select->innerJoin('login_count', 'l', 'l.uid = u.uid');
-  $select->fields('u', array('uid', 'name', 'login'))
-    ->fields('l', array('uid', 'count'))
+  $select->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
+  $select->fields('u', array('uid', 'name'))
+    ->fields('l', array('uid', 'timestamp'))
     ->orderByHeader($header)
     ->limit($perpage);
   $result = $select->execute();
-  // Fill the table.
+  //Fill the table.
   while ($value = $result->fetchAssoc()) {
     $rows[] = array(
+      format_date(strtotime($value['timestamp']), 'short', '', $timezone),
       $value['uid'],
       $value['name'],
-      format_date($value['login'], 'custom', 'm/d/Y - H:i'),
-      $value['count'],
     );
   }
   // Render the table.

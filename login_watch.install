@@ -3,23 +3,29 @@
  * Implements hook_schema().
  */
 function login_watch_schema() {
-  $schema['login_count'] = array(
+  $schema['login_tracker'] = array(
     'description' => 'Table for login_count module.',
     'fields' => array(
+      'id' => array(
+        'description' => 'This is primary key.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'uid' => array(
         'description' => 'Field for user uid.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
-      'count' => array(
-        'description' => 'Field for counter value',
-        'type' => 'int',
+      'timestamp' => array(
+        'description' => 'Timestamp of every user login.',
+        'type' => 'timestamp',
         'not null' => TRUE,
-        'default' => 0,
+        'default' => 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
       ),
     ),
-    'primary key' => array('uid'),
+    'primary key' => array('id'),
   );
   return $schema;
 } 
