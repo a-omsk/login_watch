@@ -68,7 +68,7 @@ function login_watch_create_timestamp_table() {
   $rows = login_watch_fill_timestamp_table($result);
   $table_timestamp = theme('table', array('header' => $header, 'rows' => $rows));
   $table_timestamp .= theme('pager');
-  return $table;
+  return $table_timestamp;
 }
 /**
  * Create a query from DB to fill the table.
