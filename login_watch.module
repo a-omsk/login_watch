@@ -34,7 +34,7 @@ $items = array();
     'weight' => 0,
 );
   $items['admin/config/people/login_watch/counter'] = array(
-    'title' => 'Login Сounter',
+    'title' => 'Login Counter',
     'access arguments' => array('access module page'),
     'page callback' => 'login_watch_create_counter_table',
     'file' => 'login_watch_counter.inc',
