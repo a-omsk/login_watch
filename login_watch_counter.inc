@@ -1,6 +1,6 @@
 <?php
 /**
- * Create and render a table.
+ * Create and return a table.
  */
 function login_watch_create_counter_table() {
   $perpage = 10;
@@ -16,8 +16,8 @@ function login_watch_create_counter_table() {
       'field' => 'counter',
     ),
   );
-  $count = counter_query($header, $perpage);
-  $rows = fill_counter_table($count);
+  $count = login_watch_create_counter_query($header, $perpage);
+  $rows = login_watch_fill_counter_table($count);
   $table_counter = theme('table', array('header' => $header, 'rows' => $rows));
   $table_counter .= theme('pager');
   return $table_counter;
@@ -25,7 +25,7 @@ function login_watch_create_counter_table() {
 /**
  * Create a query from DB to fill the table.
  */
-function counter_query($header, $perpage) {
+function login_watch_create_counter_query($header, $perpage) {
   $query = db_select('login_tracker', 'l')->extend('TableSort')->extend('PagerDefault');
   $query->innerJoin('users', 'u', 'u.uid = l.uid');
   $query->fields('u', array('name'))->orderByHeader($header)->limit($perpage);
@@ -37,7 +37,7 @@ function counter_query($header, $perpage) {
 /**
  * Fill the table.
  */
-function fill_counter_table($count) {
+function login_watch_fill_counter_table($count) {
   $rows = array();
   while ($value = $count->fetchAssoc()) {
     $rows[] = array(

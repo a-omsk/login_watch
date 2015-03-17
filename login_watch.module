@@ -44,7 +44,7 @@ $items = array();
   return $items;
 }
 /**
- * Create and render a table.
+ * Create and return a table.
  */
 function login_watch_create_timestamp_table() {
   $perpage = 10;
@@ -64,8 +64,8 @@ function login_watch_create_timestamp_table() {
       'field' => 'name'
     )
   );
-  $result = timestamp_query($header, $perpage);
-  $rows = fill_timestamp_table($result);
+  $result = login_watch_create_timestamp_query($header, $perpage);
+  $rows = login_watch_fill_timestamp_table($result);
   $table_timestamp = theme('table', array('header' => $header, 'rows' => $rows));
   $table_timestamp .= theme('pager');
   return $table;
@@ -73,7 +73,7 @@ function login_watch_create_timestamp_table() {
 /**
  * Create a query from DB to fill the table.
  */
-function timestamp_query($header, $perpage) {
+function login_watch_create_timestamp_query($header, $perpage) {
   $select = db_select('users', 'u')->extend('TableSort')->extend('PagerDefault');
   $select->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
   $select->fields('u', array('uid', 'name'))->fields('l', array('uid', 'timestamp'))->orderByHeader($header)->limit($perpage);
@@ -83,7 +83,7 @@ function timestamp_query($header, $perpage) {
 /**
  * Fill the table.
  */
-function fill_timestamp_table($result) {
+function login_watch_fill_timestamp_table($result) {
   $timezone = variable_get('date_default_timezone');
   $rows = array();
   while ($value = $result->fetchAssoc()) {
