@@ -16,8 +16,8 @@ function login_watch_create_counter_table() {
       'field' => 'counter',
     ),
   );
-  $count = login_watch_create_counter_query($header, $perpage);
-  $rows = login_watch_fill_counter_table($count);
+  $result = login_watch_create_counter_query($header, $perpage);
+  $rows = login_watch_fill_counter_table($result);
   $table_counter = theme('table', array('header' => $header, 'rows' => $rows));
   $table_counter .= theme('pager');
   return $table_counter;
@@ -35,15 +35,15 @@ function login_watch_create_counter_query($header, $perpage) {
   $query->innerJoin('users', 'u', 'u.uid = l.uid');
   $query->addExpression('COUNT(*)', 'counter');
   $query->GroupBy('l.uid');
-  $count = $query->execute();
-  return $count;
+  $result = $query->execute();
+  return $result;
 }
 /**
  * Fill the table.
  */
-function login_watch_fill_counter_table($count) {
+function login_watch_fill_counter_table($result) {
   $rows = array();
-  while ($value = $count->fetchAssoc()) {
+  while ($value = $result->fetchAssoc()) {
     $rows[] = array(
       $value['name'],
       $value['counter'],

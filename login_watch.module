@@ -74,15 +74,15 @@ function login_watch_create_timestamp_table() {
  * Create a query from DB to fill the table.
  */
 function login_watch_create_timestamp_query($header, $perpage) {
-   $select = db_select('users', 'u')
+   $query = db_select('users', 'u')
     ->extend('TableSort')
     ->extend('PagerDefault')
     ->fields('u', array('uid', 'name'))
     ->fields('l', array('uid', 'timestamp'))
     ->orderByHeader($header)
     ->limit($perpage);
-  $select->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
-  $result = $select->execute();
+  $query->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
+  $result = $query->execute();
   return $result;
 }
 /**
