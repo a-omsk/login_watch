@@ -4,7 +4,7 @@
  */
 function login_watch_user_login(&$edit, $account) {
   db_insert('login_tracker')
-  ->fields(array('uid' => $account->uid, 'timestamp' => REQUEST_TIME))
+  ->fields(array('uid' => $account->uid))
   ->execute();
 }
 /**
@@ -25,7 +25,7 @@ $items = array();
   $items['admin/config/people/login_watch'] = array(
     'title' => 'Login Watch module',
     'description' => 'Show login information of registered users.',
-    'page callback' => 'login_watch_create_timestamp_table',
+    'page callback' => 'login_watch_timestamp_table',
     'access arguments' => array('access module page'),
   );
   $items['admin/config/people/login_watch/timestamps'] = array(
@@ -36,7 +36,7 @@ $items = array();
   $items['admin/config/people/login_watch/counter'] = array(
     'title' => 'Login Counter',
     'access arguments' => array('access module page'),
-    'page callback' => 'login_watch_create_counter_table',
+    'page callback' => 'login_watch_counter_table',
     'file' => 'login_watch_counter.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
@@ -44,16 +44,31 @@ $items = array();
   return $items;
 }
 /**
- * Create and return a table.
+ * Create a query from DB to fill the table.
  */
-function login_watch_create_timestamp_table() {
+function login_watch_create_timestamp_query() {
+  $select = db_select('users', 'u')
+    ->extend('TableSort')
+    ->extend('PagerDefault')
+    ->fields('u', array('uid', 'name'))
+    ->fields('l', array('uid', 'timestamp'))
+    ->orderByHeader($header)
+    ->limit(10);
+  $select->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
+  $result = $select->execute()->fetchAllAssoc();
+  return $result;
+}
+/**
+ * Implements theme_table.
+ */
+function login_watch_timestamp_table() {
   $perpage = 10;
-  $rows = array();
+  $result = login_watch_create_timestamp_query();
+  $timezone = variable_get('date_default_timezone');
   $header = array(
     array(
       'data' => t('Login date'),
       'field' => 'timestamp' ,
-      'sort' => 'desc'
     ),
     array(
       'data' => t('uid'),
@@ -64,39 +79,15 @@ function login_watch_create_timestamp_table() {
       'field' => 'name'
     )
   );
-  $result = login_watch_create_timestamp_query($header, $perpage);
-  $rows = login_watch_fill_timestamp_table($result);
-  $table_timestamp = theme('table', array('header' => $header, 'rows' => $rows));
-  $table_timestamp .= theme('pager');
-  return $table_timestamp;
-}
-/**
- * Create a query from DB to fill the table.
- */
-function login_watch_create_timestamp_query($header, $perpage) {
-   $query = db_select('users', 'u')
-    ->extend('TableSort')
-    ->extend('PagerDefault')
-    ->fields('u', array('uid', 'name'))
-    ->fields('l', array('uid', 'timestamp'))
-    ->orderByHeader($header)
-    ->limit($perpage);
-  $query->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
-  $result = $query->execute();
-  return $result;
-}
-/**
- * Fill the table.
- */
-function login_watch_fill_timestamp_table($result) {
-  $timezone = variable_get('date_default_timezone');
   $rows = array();
-  while ($value = $result->fetchAssoc()) {
+  while ($value = $result) {
     $rows[] = array(
       format_date($value['timestamp'], 'short', '', $timezone),
       $value['uid'],
       $value['name'],
     );
   }
-  return $rows;
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+  $output .= theme('pager');
+  return $output;
 }

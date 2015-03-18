@@ -1,10 +1,26 @@
 <?php
 /**
- * Create and return a table.
+ * Create a query from DB to fill the table.
  */
-function login_watch_create_counter_table() {
+function login_watch_create_counter_query() {
+  $query = db_select('login_tracker', 'l')
+    ->extend('TableSort')
+    ->extend('PagerDefault')
+    ->fields('u', array('name'))
+    ->orderByHeader($header)
+    ->limit(10);
+  $query->innerJoin('users', 'u', 'u.uid = l.uid');
+  $query->addExpression('COUNT(*)', 'counter');
+  $query->GroupBy('l.uid');
+  $result = $query->execute()->fetchAllAssoc();
+  return $result;
+}
+/**
+ * Implements theme_table.
+ */
+ function login_watch_counter_table() {
   $perpage = 10;
-  $rows = array();
+  $result = login_watch_create_counter_query();
   $header = array(
     array(
       'data' => t('username'),
@@ -16,38 +32,14 @@ function login_watch_create_counter_table() {
       'field' => 'counter',
     ),
   );
-  $result = login_watch_create_counter_query($header, $perpage);
-  $rows = login_watch_fill_counter_table($result);
-  $table_counter = theme('table', array('header' => $header, 'rows' => $rows));
-  $table_counter .= theme('pager');
-  return $table_counter;
-}
-/**
- * Create a query from DB to fill the table.
- */
-function login_watch_create_counter_query($header, $perpage) {
-  $query = db_select('login_tracker', 'l')
-    ->extend('TableSort')
-    ->extend('PagerDefault')
-    ->fields('u', array('name'))
-    ->orderByHeader($header)
-    ->limit($perpage);
-  $query->innerJoin('users', 'u', 'u.uid = l.uid');
-  $query->addExpression('COUNT(*)', 'counter');
-  $query->GroupBy('l.uid');
-  $result = $query->execute();
-  return $result;
-}
-/**
- * Fill the table.
- */
-function login_watch_fill_counter_table($result) {
   $rows = array();
-  while ($value = $result->fetchAssoc()) {
+   while ($value = $result) {
     $rows[] = array(
       $value['name'],
       $value['counter'],
     );
   }
-  return $rows;
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+  $output .= theme('pager');
+  return $output;
 }
