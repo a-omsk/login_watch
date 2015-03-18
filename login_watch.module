@@ -4,7 +4,7 @@
  */
 function login_watch_user_login(&$edit, $account) {
   db_insert('login_tracker')
-  ->fields(array('uid' => $account->uid))
+  ->fields(array('uid' => $account->uid, 'timestamp' => REQUEST_TIME))
   ->execute();
 }
 /**
