@@ -47,15 +47,15 @@ $items = array();
  * Create a query from DB to fill the table.
  */
 function login_watch_create_timestamp_query() {
-  $select = db_select('users', 'u')
+  $query = db_select('users', 'u')
     ->extend('TableSort')
     ->extend('PagerDefault')
     ->fields('u', array('uid', 'name'))
     ->fields('l', array('uid', 'timestamp'))
-    ->orderByHeader($header)
+    ->orderBy('timestamp', 'DESC')
     ->limit(10);
-  $select->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
-  $result = $select->execute()->fetchAllAssoc();
+  $query->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
+  $result = $query->execute();
   return $result;
 }
 /**
@@ -80,7 +80,7 @@ function login_watch_timestamp_table() {
     )
   );
   $rows = array();
-  while ($value = $result) {
+  while ($value = $result->fetchAssoc()) {
     $rows[] = array(
       format_date($value['timestamp'], 'short', '', $timezone),
       $value['uid'],

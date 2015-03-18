@@ -7,12 +7,12 @@ function login_watch_create_counter_query() {
     ->extend('TableSort')
     ->extend('PagerDefault')
     ->fields('u', array('name'))
-    ->orderByHeader($header)
-    ->limit(10);
+    ->limit(10)
+    ->orderBy('counter', 'DESC');
   $query->innerJoin('users', 'u', 'u.uid = l.uid');
   $query->addExpression('COUNT(*)', 'counter');
   $query->GroupBy('l.uid');
-  $result = $query->execute()->fetchAllAssoc();
+  $result = $query->execute();
   return $result;
 }
 /**
@@ -33,7 +33,7 @@ function login_watch_create_counter_query() {
     ),
   );
   $rows = array();
-   while ($value = $result) {
+   while ($value = $result->fetchAssoc()) {
     $rows[] = array(
       $value['name'],
       $value['counter'],
