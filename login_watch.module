@@ -95,18 +95,9 @@ function login_watch_theme() {
  */
 function theme_timestamp($variables) {
   $header = array(
-    array(
-      'data' => t('Login date'),
-      'field' => 'timestamp' ,
-    ),
-    array(
-      'data' => t('uid'),
-      'field' => 'uid',
-    ),
-    array(
-      'data' => t('User'),
-      'field' => 'name'
-    )
+    array('data' => t('Login date')),
+    array('data' => t('uid')),
+    array('data' => t('User')),
   );
   $output = array(
     '#theme' => 'table',

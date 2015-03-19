@@ -21,14 +21,8 @@ function login_watch_create_counter_query() {
 function theme_counter($variables) {
   $rows = array();
   $header = array(
-    array(
-      'data' => t('username'),
-      'field' => 'name' ,
-    ),
-    array(
-      'data' => t('counter'),
-      'field' => 'counter',
-    ),
+    array('data' => t('username')),
+    array('data' => t('counter')) ,
   );
   while ($value = $variables['query']->fetchAssoc()) {
     $rows[] = array(
