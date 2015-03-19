@@ -25,18 +25,18 @@ $items = array();
   $items['admin/config/people/login_watch'] = array(
     'title' => 'Login Watch module',
     'description' => 'Show login information of registered users.',
-    'page callback' => 'login_watch_timestamp_table',
+    'page callback' => 'login_watch_timestamp_output',
     'access arguments' => array('access module page'),
   );
   $items['admin/config/people/login_watch/timestamps'] = array(
     'title' => 'Last login timestamps',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
-);
+  );
   $items['admin/config/people/login_watch/counter'] = array(
     'title' => 'Login Counter',
     'access arguments' => array('access module page'),
-    'page callback' => 'login_watch_counter_table',
+    'page callback' => 'login_watch_create_counter_query',
     'file' => 'login_watch_counter.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
@@ -44,7 +44,7 @@ $items = array();
   return $items;
 }
 /**
- * Create a query from DB to fill the table.
+ * Create a query from the database.
  */
 function login_watch_create_timestamp_query() {
   $query = db_select('users', 'u')
@@ -53,18 +53,47 @@ function login_watch_create_timestamp_query() {
     ->fields('u', array('uid', 'name'))
     ->fields('l', array('uid', 'timestamp'))
     ->orderBy('timestamp', 'DESC')
-    ->limit(10);
+    ->limit(20);
   $query->innerJoin('login_tracker', 'l', 'l.uid = u.uid');
   $result = $query->execute();
   return $result;
 }
 /**
- * Implements theme_table.
+ * Make operations with data.
  */
-function login_watch_timestamp_table() {
-  $perpage = 10;
-  $result = login_watch_create_timestamp_query();
+function login_watch_timestamp_output() {
   $timezone = variable_get('date_default_timezone');
+  $query = login_watch_create_timestamp_query();
+  while ($value = $query->fetchAssoc()) {
+    $rows[] = array(
+      format_date($value['timestamp'], 'short', '', $timezone),
+      $value['uid'],
+      $value['name'],
+    );
+  }
+  return theme_timestamp(array('rows' => $rows));
+}
+/**
+ * Implements hook_theme().
+ */
+function login_watch_theme() {
+  return array(
+    'timestamp' => array(
+      'variables' => array(
+        'rows' => NULL,
+      ),
+    ),
+    'counter' => array(
+      'variables' => array(
+        'query' => NULL,
+      ),
+    )
+  );
+}
+/**
+ * Theming function.
+ */
+function theme_timestamp($variables) {
   $header = array(
     array(
       'data' => t('Login date'),
@@ -79,15 +108,11 @@ function login_watch_timestamp_table() {
       'field' => 'name'
     )
   );
-  $rows = array();
-  while ($value = $result->fetchAssoc()) {
-    $rows[] = array(
-      format_date($value['timestamp'], 'short', '', $timezone),
-      $value['uid'],
-      $value['name'],
-    );
-  }
-  $output = theme('table', array('header' => $header, 'rows' => $rows));
-  $output .= theme('pager');
+  $output = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $variables['rows'],
+    '#empty' => t('No login history available.'),
+  );
   return $output;
 }

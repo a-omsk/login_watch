@@ -7,39 +7,40 @@ function login_watch_create_counter_query() {
     ->extend('TableSort')
     ->extend('PagerDefault')
     ->fields('u', array('name'))
-    ->limit(10)
+    ->limit(20)
     ->orderBy('counter', 'DESC');
   $query->innerJoin('users', 'u', 'u.uid = l.uid');
   $query->addExpression('COUNT(*)', 'counter');
   $query->GroupBy('l.uid');
   $result = $query->execute();
-  return $result;
+  return theme_counter(array('query' => $result));
 }
 /**
- * Implements theme_table.
+ * Theming function.
  */
- function login_watch_counter_table() {
-  $perpage = 10;
-  $result = login_watch_create_counter_query();
+function theme_counter($variables) {
+  $rows = array();
   $header = array(
     array(
       'data' => t('username'),
       'field' => 'name' ,
-      'sort' => 'asc'
     ),
     array(
       'data' => t('counter'),
       'field' => 'counter',
     ),
   );
-  $rows = array();
-   while ($value = $result->fetchAssoc()) {
+  while ($value = $variables['query']->fetchAssoc()) {
     $rows[] = array(
       $value['name'],
       $value['counter'],
-    );
-  }
-  $output = theme('table', array('header' => $header, 'rows' => $rows));
-  $output .= theme('pager');
+  );
+  $output = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#empty' => t('No login history available.'),
+  );
   return $output;
+  }
 }
